@@ -1,0 +1,47 @@
+# WayPay GitIgnore
+
+# --- Java/Spring Boot ---
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/*.jar
+backend/*.war
+.metadata
+.classpath
+.project
+.settings/
+.factorypath
+*.class
+
+# --- Node/Next.js ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# --- Environment & Secret files ---
+.env
+.env*.local
+*.secret
+*.key
+docker/postgres/data/
+
+# --- IDE & OS ---
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+*.log
+logs/

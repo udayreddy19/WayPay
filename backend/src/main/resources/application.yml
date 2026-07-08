@@ -1,0 +1,136 @@
+# ============================
+# WayPay Application Configuration
+# ============================
+
+spring:
+  application:
+    name: waypay-backend
+
+  # --- Database ---
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:waypay}
+    username: ${POSTGRES_USER:waypay}
+    password: ${POSTGRES_PASSWORD:waypay_secret}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  # --- Flyway ---
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # --- Redis ---
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:waypay_redis}
+      timeout: 5000
+
+  # --- Jackson ---
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+  # --- Security (Clerk JWT via OAuth2 Resource Server) ---
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${CLERK_JWKS_URL:https://your-app.clerk.accounts.dev/.well-known/jwks.json}
+
+# --- Server ---
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# --- Stripe ---
+stripe:
+  api-key: ${STRIPE_API_KEY:sk_test_placeholder}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+  currency: ${STRIPE_CURRENCY:inr}
+  success-url: ${APP_URL:http://localhost:3000}/dashboard?payment=success
+  cancel-url: ${APP_URL:http://localhost:3000}/dashboard?payment=cancelled
+
+# --- Resend (Email) ---
+resend:
+  api-key: ${RESEND_API_KEY:re_placeholder}
+  from-email: ${RESEND_FROM_EMAIL:noreply@waypay.in}
+
+# --- PostHog (Analytics) ---
+posthog:
+  api-key: ${POSTHOG_API_KEY:phc_placeholder}
+  host: ${POSTHOG_HOST:https://app.posthog.com}
+
+# --- Application ---
+app:
+  name: ${APP_NAME:WayPay}
+  url: ${APP_URL:http://localhost:3000}
+  encryption-key: ${APP_ENCRYPTION_KEY:default-32-char-key-for-dev-only!}
+  cors:
+    allowed-origins: ${APP_URL:http://localhost:3000}
+
+# --- Actuator ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# --- Logging ---
+logging:
+  level:
+    com.waypay: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# --- OpenAPI ---
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    com.waypay: INFO
+    org.hibernate.SQL: WARN
