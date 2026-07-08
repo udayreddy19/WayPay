@@ -5,9 +5,11 @@ import com.waypay.model.dto.request.TransferRequest;
 import com.waypay.model.dto.request.UpiAddMoneyRequest;
 import com.waypay.model.dto.response.ApiResponse;
 import com.waypay.model.dto.response.CheckoutSessionResponse;
+import com.waypay.model.dto.response.RazorpayOrderResponse;
 import com.waypay.model.dto.response.UpiPaymentResponse;
 import com.waypay.model.dto.response.WalletResponse;
 import com.waypay.model.entity.User;
+import com.waypay.service.RazorpayService;
 import com.waypay.service.StripeService;
 import com.waypay.service.TransactionService;
 import com.waypay.service.UserService;
@@ -31,6 +33,7 @@ public class WalletController {
 
     private final WalletService walletService;
     private final StripeService stripeService;
+    private final RazorpayService razorpayService;
     private final TransactionService transactionService;
     private final UserService userService;
 
@@ -60,6 +63,16 @@ public class WalletController {
         User user = userService.getUserEntityByClerkId(jwt.getSubject());
         UpiPaymentResponse response = stripeService.createUpiPaymentIntent(user.getId(), request.getAmount(), request.getVpa());
         return ResponseEntity.ok(ApiResponse.success("UPI Payment initiated", response));
+    }
+
+    @PostMapping("/add-money/razorpay")
+    @Operation(summary = "Add money to wallet via Razorpay")
+    public ResponseEntity<ApiResponse<RazorpayOrderResponse>> addMoneyRazorpay(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody AddMoneyRequest request) {
+        User user = userService.getUserEntityByClerkId(jwt.getSubject());
+        RazorpayOrderResponse order = razorpayService.createOrder(user.getId(), request.getAmount());
+        return ResponseEntity.ok(ApiResponse.success("Razorpay order created", order));
     }
 
     @PostMapping("/transfer")

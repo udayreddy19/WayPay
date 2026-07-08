@@ -72,6 +72,12 @@ stripe:
   success-url: ${APP_URL:http://localhost:3000}/dashboard?payment=success
   cancel-url: ${APP_URL:http://localhost:3000}/dashboard?payment=cancelled
 
+# --- Razorpay ---
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_placeholder}
+  key-secret: ${RAZORPAY_KEY_SECRET:rzp_secret_placeholder}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:rzp_whsec_placeholder}
+
 # --- Resend (Email) ---
 resend:
   api-key: ${RESEND_API_KEY:re_placeholder}

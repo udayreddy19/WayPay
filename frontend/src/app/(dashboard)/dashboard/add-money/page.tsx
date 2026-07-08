@@ -1,22 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
 const presetAmounts = [100, 500, 1000, 2000, 5000, 10000];
 
 export default function AddMoneyPage() {
-  const [activeTab, setActiveTab] = useState<"checkout" | "upi">("upi");
+  const [activeTab, setActiveTab] = useState<"razorpay" | "upi" | "stripe">("razorpay");
   const [amount, setAmount] = useState<string>("");
   const [vpa, setVpa] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   // UPI payment response states
-  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<String | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [qrCodePng, setQrCodePng] = useState<string | null>(null);
   const [hostedInstructionsUrl, setHostedInstructionsUrl] = useState<string | null>(null);
+
+  // Load Razorpay Script
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleRazorpayPayment = async () => {
+    if (!amount || Number(amount) < 1) return;
+    setLoading(true);
+
+    try {
+      const response = await api.addMoneyRazorpay(Number(amount));
+      if (response.success && response.data) {
+        const orderData = response.data;
+        
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount * 100, // Razorpay amount in paise
+          currency: orderData.currency,
+          name: "WayPay Wallet",
+          description: "Fund Wallet",
+          order_id: orderData.orderId,
+          handler: function (res: any) {
+            alert(`Payment successful! Razorpay Payment ID: ${res.razorpay_payment_id}`);
+            window.location.href = "/dashboard";
+          },
+          prefill: {
+            name: "WayPay User",
+            email: localStorage.getItem("mock_user_email") || "user@waypay.in",
+          },
+          theme: {
+            color: "#4f46e5", // primary indigo color
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } else {
+        alert("Failed to initialize Razorpay checkout order");
+      }
+    } catch (err: any) {
+      alert(err.message || "Razorpay failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCheckoutPayment = async () => {
     if (!amount || Number(amount) < 1) return;
@@ -77,7 +129,7 @@ export default function AddMoneyPage() {
         <h1 className="text-3xl font-bold font-[var(--font-heading)] text-surface-900 mt-4">
           Add Money 💳
         </h1>
-        <p className="mt-1 text-surface-500">Fund your wallet instantly using UPI or Card</p>
+        <p className="mt-1 text-surface-500">Fund your wallet instantly using UPI, NetBanking, or Cards</p>
       </div>
 
       {paymentStatus ? (
@@ -159,26 +211,36 @@ export default function AddMoneyPage() {
         /* Standard Input Flow */
         <>
           {/* Method Selection Tabs */}
-          <div className="flex rounded-xl bg-surface-100 p-1 border border-surface-200">
+          <div className="flex rounded-xl bg-surface-100 p-1 border border-surface-200 text-xs font-semibold">
             <button
-              onClick={() => setActiveTab("upi")}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === "upi"
-                  ? "bg-white text-primary-700 shadow-sm"
+              onClick={() => setActiveTab("razorpay")}
+              className={`flex-1 py-2.5 rounded-lg transition-all ${
+                activeTab === "razorpay"
+                  ? "bg-white text-primary-700 shadow-sm border border-surface-200"
                   : "text-surface-500 hover:text-surface-900"
               }`}
             >
-              ⚡ UPI Direct (VPA / QR)
+              💳 Razorpay (UPI/Card)
             </button>
             <button
-              onClick={() => setActiveTab("checkout")}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === "checkout"
-                  ? "bg-white text-primary-700 shadow-sm"
+              onClick={() => setActiveTab("upi")}
+              className={`flex-1 py-2.5 rounded-lg transition-all ${
+                activeTab === "upi"
+                  ? "bg-white text-primary-700 shadow-sm border border-surface-200"
                   : "text-surface-500 hover:text-surface-900"
               }`}
             >
-              💳 Card / Checkout
+              ⚡ Stripe UPI Direct
+            </button>
+            <button
+              onClick={() => setActiveTab("stripe")}
+              className={`flex-1 py-2.5 rounded-lg transition-all ${
+                activeTab === "stripe"
+                  ? "bg-white text-primary-700 shadow-sm border border-surface-200"
+                  : "text-surface-500 hover:text-surface-900"
+              }`}
+            >
+              🌐 Stripe Checkout
             </button>
           </div>
 
@@ -261,7 +323,13 @@ export default function AddMoneyPage() {
 
           {/* Pay Button */}
           <button
-            onClick={activeTab === "upi" ? handleUpiPayment : handleCheckoutPayment}
+            onClick={
+              activeTab === "razorpay"
+                ? handleRazorpayPayment
+                : activeTab === "upi"
+                ? handleUpiPayment
+                : handleCheckoutPayment
+            }
             disabled={!amount || Number(amount) < 1 || (activeTab === "upi" && !vpa) || loading}
             className="w-full py-4 rounded-2xl gradient-primary text-white font-semibold text-base shadow-xl shadow-primary-500/25 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -273,6 +341,8 @@ export default function AddMoneyPage() {
                 </svg>
                 Processing...
               </span>
+            ) : activeTab === "razorpay" ? (
+              `Pay with Razorpay • ₹${amount ? Number(amount).toLocaleString("en-IN") : "0"}`
             ) : activeTab === "upi" ? (
               `Pay via UPI • ₹${amount ? Number(amount).toLocaleString("en-IN") : "0"}`
             ) : (
@@ -282,7 +352,7 @@ export default function AddMoneyPage() {
 
           {/* Security note */}
           <p className="text-xs text-center text-surface-400">
-            🔒 Secured by Stripe. UPI payments are processed safely through standard banking gateways.
+            🔒 Secured by Razorpay & Stripe. Payments are processed safely through PCI-DSS standard gateways.
           </p>
         </>
       )}

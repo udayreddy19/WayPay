@@ -57,6 +57,13 @@ export interface AdminStatsData {
   pendingKycCount: number;
 }
 
+export interface RazorpayOrderData {
+  orderId: string;
+  amount: number;
+  currency: string;
+  keyId: string;
+}
+
 export interface KycRecordData {
   id: string;
   fullName: string;

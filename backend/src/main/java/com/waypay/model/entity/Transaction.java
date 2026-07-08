@@ -57,6 +57,12 @@ public class Transaction {
     @Column(name = "stripe_checkout_session_id")
     private String stripeCheckoutSessionId;
 
+    @Column(name = "razorpay_order_id")
+    private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id")
+    private String razorpayPaymentId;
+
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
 

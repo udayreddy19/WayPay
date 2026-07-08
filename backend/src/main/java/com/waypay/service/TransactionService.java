@@ -67,9 +67,28 @@ public class TransactionService {
     }
 
     @Transactional
+    public Transaction createAddMoneyTransactionWithRazorpay(UUID userId, BigDecimal amount,
+                                                             String razorpayOrderId) {
+        Wallet wallet = walletService.getWalletEntityByUserId(userId);
+        Transaction txn = Transaction.builder()
+                .toWallet(wallet)
+                .amount(amount)
+                .type(TransactionType.ADD_MONEY)
+                .status(TransactionStatus.PENDING)
+                .razorpayOrderId(razorpayOrderId)
+                .description("Add money via Razorpay UPI")
+                .build();
+
+        txn = transactionRepository.save(txn);
+        log.info("Created add-money Razorpay transaction: {} for ₹{}", txn.getId(), amount);
+        return txn;
+    }
+
+    @Transactional
     public void completeAddMoneyTransaction(String stripeId) {
         Transaction txn = transactionRepository.findByStripeCheckoutSessionId(stripeId)
                 .or(() -> transactionRepository.findByStripePaymentId(stripeId))
+                .or(() -> transactionRepository.findByRazorpayOrderId(stripeId))
                 .orElseThrow(() -> new IllegalArgumentException("Transaction not found for ID: " + stripeId));
 
         if (txn.getStatus() == TransactionStatus.COMPLETED) {
@@ -91,6 +110,17 @@ public class TransactionService {
         transactionRepository.save(txn);
 
         log.info("Completed add-money transaction: {} | ₹{}", txn.getId(), txn.getAmount());
+    }
+
+    @Transactional
+    public void completeRazorpayTransaction(String orderId, String paymentId) {
+        Transaction txn = transactionRepository.findByRazorpayOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Transaction not found for Razorpay Order: " + orderId));
+
+        txn.setRazorpayPaymentId(paymentId);
+        transactionRepository.save(txn);
+
+        completeAddMoneyTransaction(orderId);
     }
 
 

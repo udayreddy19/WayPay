@@ -1,4 +1,4 @@
-import type { ApiResponse, WalletData, UserData, TransactionData, CheckoutSession, PageResponse, UpiPaymentResponse, AdminStatsData, KycRecordData } from '@/types';
+import type { ApiResponse, WalletData, UserData, TransactionData, CheckoutSession, PageResponse, UpiPaymentResponse, AdminStatsData, KycRecordData, RazorpayOrderData } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -60,6 +60,13 @@ class ApiClient {
     return this.request<UpiPaymentResponse>('/api/v1/wallet/add-money/upi', {
       method: 'POST',
       body: JSON.stringify({ amount, vpa }),
+    });
+  }
+
+  async addMoneyRazorpay(amount: number) {
+    return this.request<RazorpayOrderData>('/api/v1/wallet/add-money/razorpay', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
     });
   }
 
