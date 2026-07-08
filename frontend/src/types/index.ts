@@ -50,6 +50,24 @@ export interface UpiPaymentResponse {
   hostedInstructionsUrl?: string;
 }
 
+export interface AdminStatsData {
+  totalUsers: number;
+  totalBalance: number;
+  totalTransactions: number;
+  pendingKycCount: number;
+}
+
+export interface KycRecordData {
+  id: string;
+  fullName: string;
+  aadhaarLastFour: string;
+  panLastFour: string;
+  dateOfBirth?: string;
+  address?: string;
+  verificationStatus: 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalPages: number;

@@ -25,4 +25,7 @@ public interface WalletRepository extends JpaRepository<Wallet, UUID> {
     Optional<Wallet> findByUserIdWithLock(@Param("userId") UUID userId);
 
     boolean existsByUserId(UUID userId);
+
+    @Query("SELECT COALESCE(SUM(w.balance), 0) FROM Wallet w")
+    java.math.BigDecimal sumTotalBalance();
 }

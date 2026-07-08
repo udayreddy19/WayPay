@@ -32,6 +32,7 @@ public class UserService {
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .clerkId(request.getClerkId())
+                .role("admin@waypay.in".equalsIgnoreCase(request.getEmail()) ? com.waypay.model.enums.UserRole.ADMIN : com.waypay.model.enums.UserRole.USER)
                 .build();
 
         user = userRepository.save(user);
@@ -58,25 +59,30 @@ public class UserService {
 
     public UserResponse getUserById(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return toResponse(user);
     }
 
     public UserResponse getUserByClerkId(String clerkId) {
         User user = userRepository.findByClerkId(clerkId)
-                .orElseThrow(() -> new UserNotFoundException("User not found for clerk ID: " + clerkId));
+                .orElseThrow(() -> new UserNotFoundException("User not found for Clerk ID"));
         return toResponse(user);
+    }
+
+    public User userEntityByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found for email"));
     }
 
     public User getUserEntityByClerkId(String clerkId) {
         return userRepository.findByClerkId(clerkId)
-                .orElseThrow(() -> new UserNotFoundException("User not found for clerk ID: " + clerkId));
+                .orElseThrow(() -> new UserNotFoundException("User not found for Clerk ID"));
     }
 
     @Transactional
     public UserResponse updateProfile(UUID userId, UpdateProfileRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (request.getName() != null) {
             user.setName(request.getName());
@@ -101,6 +107,7 @@ public class UserService {
                 .phone(user.getPhone())
                 .status(user.getStatus())
                 .kycStatus(user.getKycStatus())
+                .role(user.getRole())
                 .avatarUrl(user.getAvatarUrl())
                 .createdAt(user.getCreatedAt())
                 .build();

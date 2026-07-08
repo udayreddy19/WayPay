@@ -18,7 +18,13 @@ export default function SignInPage() {
     setTimeout(() => {
       localStorage.setItem("mock_auth", "true");
       localStorage.setItem("mock_user_email", email);
-      router.push("/dashboard");
+      if (email.toLowerCase() === "admin@waypay.in") {
+        localStorage.setItem("mock_user_role", "ADMIN");
+        router.push("/admin");
+      } else {
+        localStorage.setItem("mock_user_role", "USER");
+        router.push("/dashboard");
+      }
       setLoading(false);
     }, 800);
   };
@@ -90,8 +96,11 @@ export default function SignInPage() {
         </p>
 
         {/* Demo Tip */}
-        <div className="p-4 rounded-xl bg-primary-50 border border-primary-100 text-xs text-primary-700 leading-relaxed text-center">
-          💡 <strong>Demo Mode:</strong> Click <strong>Sign In</strong> to log in with a pre-configured test account instantly.
+        <div className="p-4 rounded-xl bg-primary-50 border border-primary-100 text-xs text-primary-700 leading-relaxed text-center space-y-2">
+          <p>💡 <strong>Demo Mode:</strong> Click <strong>Sign In</strong> to log in with a pre-configured test account.</p>
+          <p className="border-t border-primary-200/50 pt-2">
+            🔑 For Admin panel, change email to <code className="bg-primary-100 px-1.5 py-0.5 rounded font-bold">admin@waypay.in</code>.
+          </p>
         </div>
       </div>
     </div>

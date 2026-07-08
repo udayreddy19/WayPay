@@ -16,4 +16,6 @@ public interface KycRepository extends JpaRepository<KycRecord, UUID> {
     boolean existsByUserId(UUID userId);
 
     long countByVerificationStatus(KycStatus status);
+
+    org.springframework.data.domain.Page<KycRecord> findByVerificationStatus(KycStatus status, org.springframework.data.domain.Pageable pageable);
 }

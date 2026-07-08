@@ -1,4 +1,4 @@
-import type { ApiResponse, WalletData, UserData, TransactionData, CheckoutSession, PageResponse, UpiPaymentResponse } from '@/types';
+import type { ApiResponse, WalletData, UserData, TransactionData, CheckoutSession, PageResponse, UpiPaymentResponse, AdminStatsData, KycRecordData } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -99,6 +99,43 @@ class ApiClient {
 
   async getKycStatus() {
     return this.request<string>('/api/v1/kyc/status');
+  }
+
+  // Admin APIs
+  async getAdminStats() {
+    return this.request<AdminStatsData>('/api/v1/admin/stats');
+  }
+
+  async getAdminUsers(page = 0, size = 20) {
+    return this.request<PageResponse<UserData>>(
+      `/api/v1/admin/users?page=${page}&size=${size}`
+    );
+  }
+
+  async updateUserStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED') {
+    return this.request<UserData>(
+      `/api/v1/admin/users/${userId}/status?status=${status}`,
+      { method: 'PUT' }
+    );
+  }
+
+  async getAdminKyc(status: 'SUBMITTED' | 'APPROVED' | 'REJECTED', page = 0, size = 20) {
+    return this.request<PageResponse<KycRecordData>>(
+      `/api/v1/admin/kyc?status=${status}&page=${page}&size=${size}`
+    );
+  }
+
+  async verifyKyc(kycId: string, verifyStatus: 'APPROVED' | 'REJECTED') {
+    return this.request<KycRecordData>(
+      `/api/v1/admin/kyc/${kycId}/verify?verifyStatus=${verifyStatus}`,
+      { method: 'PUT' }
+    );
+  }
+
+  async getAdminTransactions(page = 0, size = 20) {
+    return this.request<PageResponse<TransactionData>>(
+      `/api/v1/admin/transactions?page=${page}&size=${size}`
+    );
   }
 }
 

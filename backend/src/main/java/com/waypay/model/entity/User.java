@@ -1,6 +1,7 @@
 package com.waypay.model.entity;
 
 import com.waypay.model.enums.KycStatus;
+import com.waypay.model.enums.UserRole;
 import com.waypay.model.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,6 +45,11 @@ public class User {
     @Column(name = "kyc_status", nullable = false)
     @Builder.Default
     private KycStatus kycStatus = KycStatus.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private UserRole role = UserRole.USER;
 
     @Column(name = "avatar_url")
     private String avatarUrl;
